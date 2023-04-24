@@ -83,7 +83,7 @@ public class HoodieSparkParquetStreamWriter implements HoodieSparkFileWriter, Au
     }
 
     private Builder(OutputFile file, WriteSupport<T> writeSupport) {
-      super(file);
+      super((Path) file);
       this.writeSupport = writeSupport;
     }
 

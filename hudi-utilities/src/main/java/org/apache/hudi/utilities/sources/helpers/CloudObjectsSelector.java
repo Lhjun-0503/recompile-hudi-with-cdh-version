@@ -33,6 +33,7 @@ import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
@@ -110,16 +111,20 @@ public class CloudObjectsSelector {
    */
   protected Map<String, Object> getFileAttributesFromRecord(JSONObject record) throws UnsupportedEncodingException {
     Map<String, Object> fileRecord = new HashMap<>();
-    String eventTimeStr = record.getString(S3_MODEL_EVENT_TIME);
-    long eventTime =
-        Date.from(Instant.from(DateTimeFormatter.ISO_INSTANT.parse(eventTimeStr))).getTime();
-    JSONObject s3Object = record.getJSONObject("s3").getJSONObject("object");
-    String bucket = URLDecoder.decode(record.getJSONObject("s3").getJSONObject("bucket").getString("name"), "UTF-8");
-    String key = URLDecoder.decode(s3Object.getString("key"), "UTF-8");
-    String filePath = this.fsName + "://" + bucket + "/" + key;
-    fileRecord.put(S3_MODEL_EVENT_TIME, eventTime);
-    fileRecord.put(S3_FILE_SIZE, s3Object.getLong("size"));
-    fileRecord.put(S3_FILE_PATH, filePath);
+    try {
+      String eventTimeStr = record.getString(S3_MODEL_EVENT_TIME);
+      long eventTime =
+          Date.from(Instant.from(DateTimeFormatter.ISO_INSTANT.parse(eventTimeStr))).getTime();
+      JSONObject s3Object = record.getJSONObject("s3").getJSONObject("object");
+      String bucket = URLDecoder.decode(record.getJSONObject("s3").getJSONObject("bucket").getString("name"), "UTF-8");
+      String key = URLDecoder.decode(s3Object.getString("key"), "UTF-8");
+      String filePath = this.fsName + "://" + bucket + "/" + key;
+      fileRecord.put(S3_MODEL_EVENT_TIME, eventTime);
+      fileRecord.put(S3_FILE_SIZE, s3Object.getLong("size"));
+      fileRecord.put(S3_FILE_PATH, filePath);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
     return fileRecord;
   }
 

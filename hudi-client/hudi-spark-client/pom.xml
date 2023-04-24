@@ -222,6 +222,11 @@
       <version>${zk-curator.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.parquet</groupId>
+      <artifactId>parquet-common</artifactId>
+      <version>1.12.2</version>
+    </dependency>
   </dependencies>
 
   <build>

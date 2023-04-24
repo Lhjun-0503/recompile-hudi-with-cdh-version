@@ -51,7 +51,7 @@ import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.{Expression, SubqueryExpression}
 import org.apache.spark.sql.execution.FileRelation
 import org.apache.spark.sql.execution.datasources._
-import org.apache.spark.sql.execution.datasources.orc.OrcFileFormat
+//import org.apache.spark.sql.execution.datasources.orc.OrcFileFormat
 import org.apache.spark.sql.execution.datasources.parquet.{HoodieParquetFileFormat, ParquetFileFormat}
 import org.apache.spark.sql.hudi.HoodieSqlCommonUtils
 import org.apache.spark.sql.sources.{BaseRelation, Filter, PrunedFilteredScan}
@@ -214,7 +214,7 @@ abstract class HoodieBaseRelation(val sqlContext: SQLContext,
    */
   protected lazy val (fileFormat: FileFormat, fileFormatClassName: String) =
     metaClient.getTableConfig.getBaseFileFormat match {
-      case HoodieFileFormat.ORC => (new OrcFileFormat, "orc")
+      //case HoodieFileFormat.ORC => (new OrcFileFormat, "orc")
       case HoodieFileFormat.PARQUET =>
         // We're delegating to Spark to append partition values to every row only in cases
         // when these corresponding partition-values are not persisted w/in the data file itself
@@ -293,7 +293,7 @@ abstract class HoodieBaseRelation(val sqlContext: SQLContext,
    */
   def canPruneRelationSchema: Boolean =
     !HoodieTableMetadata.isMetadataTable(basePath.toString) &&
-      (fileFormat.isInstanceOf[ParquetFileFormat] || fileFormat.isInstanceOf[OrcFileFormat]) &&
+      (fileFormat.isInstanceOf[ParquetFileFormat] /*|| fileFormat.isInstanceOf[OrcFileFormat]*/) &&
       // NOTE: In case this relation has already been pruned there's no point in pruning it again
       prunedDataSchema.isEmpty &&
       // TODO(HUDI-5421) internal schema doesn't support nested schema pruning currently
