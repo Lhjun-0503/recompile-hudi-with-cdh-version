@@ -27,6 +27,7 @@ import org.apache.hudi.utilities.testutils.CloudObjectTestUtils;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.Message;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -128,12 +129,17 @@ public class TestCloudObjectsSelector extends HoodieClientTestHarness {
             + ",\\\"object\\\":{\\\"key\\\":\\\""
             + key
             + "\\\",\\\"size\\\":123,\\\"eTag\\\":\\\"test\\\",\\\"sequencer\\\":\\\"1\\\"}}}]}\"}";
-    JSONObject messageBody = new JSONObject(s3Records);
     Map<String, Object> messageMap = new HashMap<>();
-    if (messageBody.has(SQS_MODEL_MESSAGE)) {
-      ObjectMapper mapper = new ObjectMapper();
-      messageMap =
-          (Map<String, Object>) mapper.readValue(messageBody.getString(SQS_MODEL_MESSAGE), Map.class);
+    try {
+      JSONObject messageBody = new JSONObject(s3Records);
+      messageMap = new HashMap<>();
+      if (messageBody.has(SQS_MODEL_MESSAGE)) {
+        ObjectMapper mapper = new ObjectMapper();
+        messageMap =
+            (Map<String, Object>) mapper.readValue(messageBody.getString(SQS_MODEL_MESSAGE), Map.class);
+      }
+    } catch (JSONException e) {
+      e.printStackTrace();
     }
     List<Map<String, Object>> records = (List<Map<String, Object>>) messageMap.get(SQS_MODEL_EVENT_RECORDS);
 

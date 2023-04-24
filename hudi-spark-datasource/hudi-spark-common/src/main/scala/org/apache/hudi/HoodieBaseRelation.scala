@@ -47,7 +47,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.{Expression, SubqueryExpression, UnsafeProjection}
 import org.apache.spark.sql.execution.FileRelation
-import org.apache.spark.sql.execution.datasources.orc.OrcFileFormat
+//import org.apache.spark.sql.execution.datasources.orc.OrcFileFormat
 import org.apache.spark.sql.execution.datasources.parquet.{HoodieParquetFileFormat, ParquetFileFormat}
 import org.apache.spark.sql.execution.datasources.{FileFormat, FileStatusCache, PartitionDirectory, PartitionedFile, PartitioningUtils}
 import org.apache.spark.sql.hudi.HoodieSqlCommonUtils
@@ -210,7 +210,7 @@ abstract class HoodieBaseRelation(val sqlContext: SQLContext,
    */
   lazy val (fileFormat: FileFormat, fileFormatClassName: String) =
     metaClient.getTableConfig.getBaseFileFormat match {
-      case HoodieFileFormat.ORC => (new OrcFileFormat, "orc")
+      //case HoodieFileFormat.ORC => (new OrcFileFormat, "orc")
       case HoodieFileFormat.PARQUET =>
         // We're delegating to Spark to append partition values to every row only in cases
         // when these corresponding partition-values are not persisted w/in the data file itself
@@ -272,7 +272,7 @@ abstract class HoodieBaseRelation(val sqlContext: SQLContext,
    * Determines whether relation's schema could be pruned by Spark's Optimizer
    */
   def canPruneRelationSchema: Boolean =
-    (fileFormat.isInstanceOf[ParquetFileFormat] || fileFormat.isInstanceOf[OrcFileFormat]) &&
+    (fileFormat.isInstanceOf[ParquetFileFormat] /*|| fileFormat.isInstanceOf[OrcFileFormat]*/) &&
       // NOTE: Some relations might be disabling sophisticated schema pruning techniques (for ex, nested schema pruning)
       // TODO(HUDI-XXX) internal schema doesn't support nested schema pruning currently
       !hasSchemaOnRead

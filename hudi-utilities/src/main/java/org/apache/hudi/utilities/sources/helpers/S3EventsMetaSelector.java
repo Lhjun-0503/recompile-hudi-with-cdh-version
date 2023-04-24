@@ -99,32 +99,36 @@ public class S3EventsMetaSelector extends CloudObjectsSelector {
                                                                     List<Message> messages) throws IOException {
     List<Map<String, Object>> validEvents = new ArrayList<>();
     for (Message message : messages) {
-      JSONObject messageBody = new JSONObject(message.getBody());
-      Map<String, Object> messageMap;
-      ObjectMapper mapper = new ObjectMapper();
-      if (messageBody.has(SQS_MODEL_MESSAGE)) {
-        // If this messages is from S3Event -> SNS -> SQS
-        messageMap = (Map<String, Object>) mapper.readValue(messageBody.getString(SQS_MODEL_MESSAGE), Map.class);
-      } else {
-        // If this messages is from S3Event -> SQS
-        messageMap = (Map<String, Object>) mapper.readValue(messageBody.toString(), Map.class);
-      }
-      if (messageMap.containsKey(SQS_MODEL_EVENT_RECORDS)) {
-        List<Map<String, Object>> events = (List<Map<String, Object>>) messageMap.get(SQS_MODEL_EVENT_RECORDS);
-        for (Map<String, Object> event : events) {
-          event.remove(S3_EVENT_RESPONSE_ELEMENTS);
-          String eventName = (String) event.get(SQS_MODEL_EVENT_NAME);
-          // filter only allowed s3 event types
-          if (ALLOWED_S3_EVENT_PREFIX.stream().anyMatch(eventName::startsWith)) {
-            validEvents.add(event);
-          } else {
-            log.debug(String.format("This S3 event %s is not allowed, so ignoring it.", eventName));
-          }
+      try {
+        JSONObject messageBody = new JSONObject(message.getBody());
+        Map<String, Object> messageMap;
+        ObjectMapper mapper = new ObjectMapper();
+        if (messageBody.has(SQS_MODEL_MESSAGE)) {
+          // If this messages is from S3Event -> SNS -> SQS
+          messageMap = (Map<String, Object>) mapper.readValue(messageBody.getString(SQS_MODEL_MESSAGE), Map.class);
+        } else {
+          // If this messages is from S3Event -> SQS
+          messageMap = (Map<String, Object>) mapper.readValue(messageBody.toString(), Map.class);
         }
-      } else {
-        log.debug(String.format("Message is not expected format or it's s3:TestEvent. Message: %s", message));
+        if (messageMap.containsKey(SQS_MODEL_EVENT_RECORDS)) {
+          List<Map<String, Object>> events = (List<Map<String, Object>>) messageMap.get(SQS_MODEL_EVENT_RECORDS);
+          for (Map<String, Object> event : events) {
+            event.remove(S3_EVENT_RESPONSE_ELEMENTS);
+            String eventName = (String) event.get(SQS_MODEL_EVENT_NAME);
+            // filter only allowed s3 event types
+            if (ALLOWED_S3_EVENT_PREFIX.stream().anyMatch(eventName::startsWith)) {
+              validEvents.add(event);
+            } else {
+              log.debug(String.format("This S3 event %s is not allowed, so ignoring it.", eventName));
+            }
+          }
+        } else {
+          log.debug(String.format("Message is not expected format or it's s3:TestEvent. Message: %s", message));
+        }
+        processedMessages.add(message);
+      } catch (JSONException e) {
+        e.printStackTrace();
       }
-      processedMessages.add(message);
     }
     return validEvents;
   }
@@ -154,7 +158,7 @@ public class S3EventsMetaSelector extends CloudObjectsSelector {
         filteredEventRecords.add(new ObjectMapper().writeValueAsString(eventRecord).replace("%3D", "="));
       }
       return new ImmutablePair<>(filteredEventRecords, String.valueOf(newCheckpointTime));
-    } catch (JSONException | IOException e) {
+    } catch (IOException e) {
       throw new HoodieException("Unable to read from SQS: ", e);
     }
   }

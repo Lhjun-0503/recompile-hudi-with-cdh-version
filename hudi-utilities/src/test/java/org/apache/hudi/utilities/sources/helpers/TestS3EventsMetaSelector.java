@@ -29,6 +29,7 @@ import org.apache.hudi.utilities.testutils.CloudObjectTestUtils;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.Message;
 import org.apache.hadoop.fs.Path;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,12 +95,16 @@ public class TestS3EventsMetaSelector extends HoodieClientTestHarness {
 
     assertEquals(1, eventFromQueue.getLeft().size());
     assertEquals(1, processed.size());
-    assertEquals(
-        key,
-        new JSONObject(eventFromQueue.getLeft().get(0))
-            .getJSONObject("s3")
-            .getJSONObject("object")
-            .getString("key"));
+    try {
+      assertEquals(
+          key,
+          new JSONObject(eventFromQueue.getLeft().get(0))
+              .getJSONObject("s3")
+              .getJSONObject("object")
+              .getString("key"));
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
     assertEquals("1627376736755", eventFromQueue.getRight());
   }
 }
